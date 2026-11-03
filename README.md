@@ -211,7 +211,7 @@ echo "[gen_pb] $(protoc-gen-go --version)"
 ```bash
 protoc -I proto -I "$(brew --prefix)/include" \
   --go_out=. \
-  --go_opt=module=github.com/your-org/gps_mid_common \
+  --go_opt=module=github.com/mrlovelybob/gps_mid_common \
   device_transport.proto
 
 gofmt -w pb/device_transport.pb.go
@@ -245,7 +245,7 @@ go build ./...
 | `protoc-gen-go: program not found or is not executable` | `$(go env GOPATH)/bin` 不在 PATH，按 4.1 第 3 步处理 |
 | `google/protobuf/struct.proto: File not found` | 缺 WKT include 路径，加上 `-I "$(brew --prefix)/include"` |
 | `device_transport.proto: File does not reside within any path specified using --proto_path` | 输入写成了 `proto/device_transport.proto`；配合 `-I proto` 时应只写文件名 |
-| 生成码出现 `github.com/your-org/...` | `go.mod` 的 module 还是占位符，见第 7 节 |
+| 生成码里仍是旧的 module 路径 | `go.mod` 或 proto 的 `go_package` 改过后未重新生成，运行 `./scripts/gen_pb.sh` |
 
 ---
 
@@ -265,9 +265,9 @@ go get github.com/mrlovelybob/gps_mid_common@v0.1.0
 
 | 包 | import | 什么时候用 |
 | --- | --- | --- |
-| `pb` | `github.com/<owner>/gps_mid_common/pb` | 需要 `*pb.DevicePayload` / `*pb.RawMetric` 类型时 |
-| `dict` | `github.com/<owner>/gps_mid_common/dict` | 引用指标 ID 常量、查字典 |
-| `metric` | `github.com/<owner>/gps_mid_common/metric` | 构造指标、按 ID 取值、解析数组指标 |
+| `pb` | `github.com/mrlovelybob/gps_mid_common/pb` | 需要 `*pb.DevicePayload` / `*pb.RawMetric` 类型时 |
+| `dict` | `github.com/mrlovelybob/gps_mid_common/dict` | 引用指标 ID 常量、查字典 |
+| `metric` | `github.com/mrlovelybob/gps_mid_common/metric` | 构造指标、按 ID 取值、解析数组指标 |
 
 ### 5.2 API 速查
 
@@ -307,9 +307,9 @@ go get github.com/mrlovelybob/gps_mid_common@v0.1.0
 package main
 
 import (
-    "github.com/your-org/gps_mid_common/dict"
-    "github.com/your-org/gps_mid_common/metric"
-    "github.com/your-org/gps_mid_common/pb"
+    "github.com/mrlovelybob/gps_mid_common/dict"
+    "github.com/mrlovelybob/gps_mid_common/metric"
+    "github.com/mrlovelybob/gps_mid_common/pb"
 
     "google.golang.org/protobuf/proto"
 )
@@ -346,9 +346,9 @@ package main
 import (
     "fmt"
 
-    "github.com/your-org/gps_mid_common/dict"
-    "github.com/your-org/gps_mid_common/metric"
-    "github.com/your-org/gps_mid_common/pb"
+    "github.com/mrlovelybob/gps_mid_common/dict"
+    "github.com/mrlovelybob/gps_mid_common/metric"
+    "github.com/mrlovelybob/gps_mid_common/pb"
 
     "google.golang.org/protobuf/proto"
 )
@@ -429,37 +429,27 @@ go test ./... -v    # 看用例明细
 
 ## 7. 发布与引用
 
-### ⚠️ 当前存在一处不一致（发布前必须处理）
+### module 路径（已与远端对齐）
 
-| 项 | 当前值 |
+| 项 | 值 |
 | --- | --- |
 | Git remote | `https://github.com/mrlovelybob/gps_mid_common.git` |
-| `go.mod` module | `github.com/your-org/gps_mid_common` ← **占位符，与远端不一致** |
-| 源码 import / proto `go_package` / pb.go descriptor | 同样是 `github.com/your-org/...` |
+| `go.mod` module | `github.com/mrlovelybob/gps_mid_common` |
+| proto `option go_package` | `github.com/mrlovelybob/gps_mid_common/pb;pb` |
+| 源码 import | `github.com/mrlovelybob/gps_mid_common/{pb,dict,metric}` |
+| `pb.go` descriptor | 由 `./scripts/gen_pb.sh` 按 `go.mod` 生成，已同步 |
 
-module 路径与仓库地址不一致时，别人执行 `go get github.com/mrlovelybob/gps_mid_common` 会失败。发布前把 `your-org` 全部替换为真实 owner：
+四者一致，`go get github.com/mrlovelybob/gps_mid_common` 可正常解析。
 
-```bash
-# macOS / BSD sed 需要 -i ''；排除生成的 pb.go，避免破坏 descriptor 里的长度前缀
-find . -type f \( -name '*.go' -o -name 'go.mod' -o -name '*.proto' -o -name 'README.md' \) \
-  ! -name '*.pb.go' \
-  -exec sed -i '' 's#github.com/your-org/gps_mid_common#github.com/mrlovelybob/gps_mid_common#g' {} +
+后续若更换 owner，需同步 4 类位置：`go.mod` 的 `module`、`proto/device_transport.proto` 的 `option go_package`、`metric/` 下 4 个文件的 import（以及本文档示例），最后运行 `./scripts/gen_pb.sh` 重新生成 `pb.go`。
 
-# 按新 module 重新生成 pb.go（脚本自动读 go.mod，descriptor 里的 go_package 一并更新）
-./scripts/gen_pb.sh
-
-go build ./... && go test ./...
-```
-
-**不要直接对 `pb/device_transport.pb.go` 做文本替换**：`go_package` 被编码进 `rawDesc` 且带长度前缀，owner 长度变化会破坏描述符。必须重新生成。
-
-需要同步的位置共 4 类：`go.mod` 的 `module`、`proto/device_transport.proto` 的 `option go_package`、`metric/` 下 4 个文件的 import（及本文档示例）、以及重新生成的 `pb.go`。
+**不要直接对 `pb/device_transport.pb.go` 做文本替换**：`go_package` 被编码进 `rawDesc` 且带长度前缀，owner 长度变化会破坏描述符，必须重新生成。
 
 ### 发布步骤
 
 ```bash
 git add -A
-git commit -m "chore: align module path with GitHub owner"
+git commit -m "chore: release v0.1.0"
 git tag v0.1.0
 git push origin main
 git push origin v0.1.0

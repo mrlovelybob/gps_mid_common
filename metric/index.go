@@ -1,8 +1,8 @@
 package metric
 
 import (
+	"github.com/mrlovelybob/gps_mid_common/pb"
 	"github.com/spf13/cast"
-	"github.com/your-org/gps_mid_common/pb"
 	"google.golang.org/protobuf/types/known/structpb"
 )
 

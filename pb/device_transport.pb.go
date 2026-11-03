@@ -175,7 +175,7 @@ const file_device_transport_proto_rawDesc = "" +
 	"\ametrics\x18\x06 \x03(\v2\x10.proto.RawMetricR\ametrics\"E\n" +
 	"\tRawMetric\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x05R\x02id\x12(\n" +
-	"\x05value\x18\x02 \x01(\v2\x16.google.protobuf.ValueR\x01vB*Z(github.com/your-org/gps_mid_common/pb;pbb\x06proto3"
+	"\x05value\x18\x02 \x01(\v2\x16.google.protobuf.ValueR\x01vB-Z+github.com/mrlovelybob/gps_mid_common/pb;pbb\x06proto3"
 
 var (
 	file_device_transport_proto_rawDescOnce sync.Once

@@ -4,8 +4,8 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/your-org/gps_mid_common/dict"
-	"github.com/your-org/gps_mid_common/pb"
+	"github.com/mrlovelybob/gps_mid_common/dict"
+	"github.com/mrlovelybob/gps_mid_common/pb"
 	"google.golang.org/protobuf/types/known/structpb"
 )
 

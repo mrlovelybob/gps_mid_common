@@ -4,8 +4,8 @@ package proto;
 
 import "google/protobuf/struct.proto";
 
-// 上传 GitHub 前请把 your-org 替换为真实的 owner。
-option go_package = "github.com/your-org/gps_mid_common/pb;pb";
+// go_package 必须与 go.mod 的 module 前缀保持一致。
+option go_package = "github.com/mrlovelybob/gps_mid_common/pb;pb";
 
 // DevicePayload 设备经 Kafka 传输的统一载荷。
 message DevicePayload {

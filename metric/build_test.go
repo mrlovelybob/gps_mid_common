@@ -3,7 +3,7 @@ package metric
 import (
 	"testing"
 
-	"github.com/your-org/gps_mid_common/dict"
+	"github.com/mrlovelybob/gps_mid_common/dict"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/structpb"
 )

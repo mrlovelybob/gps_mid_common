@@ -1,4 +1,4 @@
-module github.com/your-org/gps_mid_common
+module github.com/mrlovelybob/gps_mid_common
 
 go 1.27
 
