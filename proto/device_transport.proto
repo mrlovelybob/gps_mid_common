@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+package proto;
+
+import "google/protobuf/struct.proto";
+
+// 上传 GitHub 前请把 your-org 替换为真实的 owner。
+option go_package = "github.com/your-org/gps_mid_common/pb;pb";
+
+// DevicePayload 设备经 Kafka 传输的统一载荷。
+message DevicePayload {
+  string client_id = 1 [json_name = "clientId"];
+  int32 factory_id = 2 [json_name = "factoryId"];
+  int64 ts = 3 [json_name = "ts"];
+  string date = 4 [json_name = "date"];
+  string method = 5 [json_name = "method"];
+  repeated RawMetric metrics = 6 [json_name = "metrics"];
+}
+
+// RawMetric 单条指标，id 对应 dict 包中的指标 ID 常量。
+message RawMetric {
+  int32 id = 1 [json_name = "id"];
+  google.protobuf.Value value = 2 [json_name = "v"];
+}
